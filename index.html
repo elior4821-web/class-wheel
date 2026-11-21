@@ -178,7 +178,7 @@
     box.innerHTML = '';
     const list = roster.filter(s => !q || s.display.includes(q));
     list.forEach(s => box.append(el('button', { class: 'name-btn', onclick: () => showCode(s) }, s.display)));
-    if (!roster.length) box.append(el('p', { class: 'muted' }, 'הרשימה עוד ריקה. המורה צריך להעלות את הדוח של השבוע.'));
+    if (!roster.length) box.append(el('p', { class: 'muted', style: 'grid-column:1/-1;text-align:center' }, 'הרשימה עוד ריקה. המורה צריך להעלות את הדוח של השבוע.'));
   }
   $('search').addEventListener('input', e => renderNames(e.target.value.trim()));
 
