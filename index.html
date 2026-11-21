@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#2a0710">
+<title>גלגל המזל של כיתה ה׳</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Secular+One&family=Heebo:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<style>
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; max-width: 640px; margin: 0 auto; }
+  .top h1 { color: var(--gold); font-size: 26px; text-shadow: 0 2px 0 var(--gold-deep); }
+  .top .actions { display: flex; gap: 6px; }
+  main { max-width: 640px; margin: 0 auto; padding: 0 16px 40px; display: grid; gap: 16px; }
+  .view[hidden] { display: none !important; }
+
+  /* Pick name */
+  .pick-title { text-align: center; font-size: 28px; color: var(--gold); margin: 6px 0 4px; }
+  .search { width: 100%; padding: 12px 14px; border-radius: 12px; border: 2px solid var(--line); background: #1a0409; }
+  .names { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .name-btn { padding: 14px 8px; border-radius: 14px; border: 2px solid var(--line); background: rgba(255,255,255,0.06); font-size: 19px; font-weight: 800; min-height: 60px; }
+  .name-btn:hover { background: rgba(255,204,51,0.16); border-color: var(--gold); }
+
+  /* Code */
+  .code-card { text-align: center; display: grid; gap: 14px; justify-items: center; }
+  .code-card h2 { font-size: 26px; color: var(--gold); }
+  .dots { display: flex; gap: 14px; direction: ltr; }
+  .dot { width: 22px; height: 22px; border-radius: 50%; border: 3px solid var(--gold); }
+  .dot.on { background: var(--gold); box-shadow: 0 0 12px rgba(255,204,51,0.7); }
+  .shake { animation: shake 0.4s; }
+  @keyframes shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+  .keypad { display: grid; grid-template-columns: repeat(3, 76px); gap: 12px; direction: ltr; }
+  .key { height: 68px; border-radius: 16px; border: 2px solid var(--line); background: rgba(255,255,255,0.07); font-size: 30px; font-weight: 800; }
+  .key:active { background: var(--gold); color: #2a0710; }
+
+  /* Home */
+  .hello { font-size: 24px; color: var(--gold); }
+  .spins-card { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center; }
+  .spins-num { font-family: var(--display); font-size: 64px; line-height: 1; color: var(--gold); text-shadow: 0 0 18px rgba(255,204,51,0.5); font-variant-numeric: tabular-nums; min-width: 56px; text-align: center; }
+  .spins-text strong { font-size: 20px; display: block; }
+  .wheel-box { position: relative; width: min(100%, 440px); aspect-ratio: 1; margin: 18px auto 6px; }
+  .wheel-box canvas { width: 100%; height: 100%; display: block; border-radius: 50%; }
+  .wheel-rim { position: absolute; inset: -4%; border-radius: 50%; z-index: -1; background: conic-gradient(#ffdf70, #c98a00, #ffdf70, #c98a00, #ffdf70); box-shadow: 0 0 40px rgba(255,204,51,0.35); }
+  .wheel-pointer { position: absolute; top: -7%; left: 50%; transform: translateX(-50%); width: 11%; z-index: 2; filter: drop-shadow(0 3px 3px rgba(0,0,0,0.6)); }
+  .wheel-hub { position: absolute; inset: 40%; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff3b0, var(--gold) 45%, var(--gold-deep)); box-shadow: 0 0 0 4px #2a0710; display: grid; place-items: center; font-size: 28px; }
+  .spin-btn { width: 100%; font-size: 30px; padding: 14px; border-radius: 16px; margin-top: 6px; }
+  .reason { text-align: center; color: var(--ink-soft); font-weight: 700; margin: 8px 0 0; }
+  .list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
+  .list li { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 10px 12px; }
+  .list .em { font-size: 26px; }
+  .list .nm { flex: 1; font-weight: 700; }
+  .list li.done .nm { text-decoration: line-through; opacity: 0.7; }
+  .note { font-size: 15px; color: var(--ink-soft); margin: 10px 0 0; }
+  .tier { margin-top: 12px; }
+  .tier-head { display: flex; justify-content: space-between; gap: 8px; font-weight: 700; font-size: 15px; }
+  .bar { height: 14px; border-radius: 999px; background: rgba(255,255,255,0.1); overflow: hidden; margin-top: 5px; }
+  .bar > span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--gold-deep), var(--gold)); }
+  .bar.reached > span { background: linear-gradient(90deg, #1fa36b, var(--good)); }
+  .class-win { font-size: 20px; font-weight: 800; color: var(--gold); margin-top: 4px; }
+
+  /* Reveal */
+  .reveal { position: fixed; inset: 0; background: rgba(10,1,4,0.82); display: none; place-items: center; z-index: 50; padding: 16px; }
+  .reveal.open { display: grid; }
+  .reveal .card { text-align: center; border: 3px solid var(--gold); max-width: 460px; width: 100%; }
+  .reveal .k { font-size: 20px; font-weight: 800; color: var(--ink-soft); }
+  .reveal .e { font-size: 96px; line-height: 1.15; }
+  .reveal .n { font-family: var(--display); font-size: 36px; color: var(--gold); margin: 6px 0 18px; text-wrap: balance; }
+  #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 60; }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>🎡 גלגל המזל</h1>
+  <div class="actions">
+    <button class="btn btn-small" id="soundBtn" aria-pressed="false">🔇</button>
+    <button class="btn btn-small" id="logoutBtn" hidden>יציאה</button>
+  </div>
+</header>
+
+<main>
+  <div class="view" id="vLoading"><div class="spinner" aria-label="טוען"></div></div>
+
+  <section class="view" id="vPick" hidden>
+    <h2 class="pick-title">מי את/ה?</h2>
+    <input class="search" id="search" type="search" placeholder="חיפוש שם..." aria-label="חיפוש שם">
+    <div class="names" id="names"></div>
+    <p class="err" id="pickErr"></p>
+  </section>
+
+  <section class="view card code-card" id="vCode" hidden>
+    <h2 id="codeTitle">הקוד הסודי שלך</h2>
+    <p class="muted" id="codeSub" style="margin:0"></p>
+    <div class="dots" id="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+    <div class="keypad" id="keypad"></div>
+    <p class="err" id="codeErr"></p>
+    <button class="btn" id="backBtn">→ זה לא אני</button>
+  </section>
+
+  <section class="view" id="vHome" hidden>
+    <h2 class="hello" id="hello"></h2>
+    <div class="card spins-card" id="spinsCard">
+      <div class="spins-num" id="spinsNum">0</div>
+      <div class="spins-text"><strong id="spinsTitle"></strong><span class="muted" id="spinsSub"></span></div>
+    </div>
+    <div class="card">
+      <div class="wheel-box">
+        <div class="wheel-rim"></div>
+        <svg class="wheel-pointer" viewBox="0 0 40 50" aria-hidden="true"><path d="M20 50 L2 6 Q20 -4 38 6 Z" fill="#ffcc33" stroke="#2a0710" stroke-width="3"/><circle cx="20" cy="12" r="5" fill="#fff6c2"/></svg>
+        <canvas id="wheel" role="img" aria-label="גלגל הפרסים"></canvas>
+        <div class="wheel-hub">🎁</div>
+      </div>
+      <button class="btn btn-primary spin-btn" id="spinBtn">סובב! 🎡</button>
+      <p class="reason" id="reason"></p>
+    </div>
+    <div class="card">
+      <h3>🎁 הפרסים שלי השבוע</h3>
+      <ul class="list" id="myWins"></ul>
+      <p class="note" id="winsNote"></p>
+    </div>
+    <div class="card" id="classCard">
+      <h3>🏆 גלגל הכיתה</h3>
+      <div id="classBody"></div>
+    </div>
+    <button class="btn btn-primary" id="doneBtn" hidden>סיימתי ✓</button>
+  </section>
+</main>
+
+<div class="reveal" id="reveal" role="dialog" aria-modal="true" aria-labelledby="rvName">
+  <div class="card">
+    <div class="k" id="rvKick">זכית ב...</div>
+    <div class="e" id="rvEmoji">🎉</div>
+    <div class="n" id="rvName"></div>
+    <button class="btn btn-primary" id="rvOk">יש! 🙌</button>
+  </div>
+</div>
+<canvas id="confetti"></canvas>
+
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script>
+(() => {
+  const { api, store, el, fmtDate, dayName, toast } = WH;
+  const $ = id => document.getElementById(id);
+  const station = new URLSearchParams(location.search).has('station');
+  const TOKEN_KEY = 'wheel.kidToken';
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const TAU = Math.PI * 2;
+  const mod = (x, m) => ((x % m) + m) % m;
+  const COLORS = ['#e63946', '#f77f00', '#2a9d8f', '#3a86ff', '#8338ec', '#ff006e', '#06a77d', '#118ab2', '#d62869', '#7b2cbf', '#e85d04', '#0f9d8a', '#c1121f', '#4361ee'];
+
+  let token = store.get(TOKEN_KEY, station);
+  let view = null, rotation = 0, spinning = false;
+  let soundOn = store.get('wheel.sound') === 'on';
+
+  function show(id) {
+    ['vLoading', 'vPick', 'vCode', 'vHome'].forEach(v => { $(v).hidden = v !== id; });
+    $('logoutBtn').hidden = id !== 'vHome';
+  }
+
+  /* ---------- Pick name ---------- */
+  let roster = [];
+  async function showPick() {
+    show('vLoading');
+    try {
+      roster = (await api('roster')).students;
+      renderNames('');
+      show('vPick');
+      $('search').value = '';
+    } catch (e) {
+      show('vPick');
+      $('pickErr').textContent = e.message;
+    }
+  }
+  function renderNames(q) {
+    const box = $('names');
+    box.innerHTML = '';
+    const list = roster.filter(s => !q || s.display.includes(q));
+    list.forEach(s => box.append(el('button', { class: 'name-btn', onclick: () => showCode(s) }, s.display)));
+    if (!roster.length) box.append(el('p', { class: 'muted' }, 'הרשימה עוד ריקה. המורה צריך להעלות את הדוח של השבוע.'));
+  }
+  $('search').addEventListener('input', e => renderNames(e.target.value.trim()));
+
+  /* ---------- Code ---------- */
+  let codeStudent = null, codeMode = 'login', entered = '', firstCode = '';
+  function showCode(s) {
+    codeStudent = s;
+    setCodeMode(s.hasCode ? 'login' : 'set1');
+    show('vCode');
+  }
+  function setCodeMode(m) {
+    codeMode = m; entered = ''; drawDots(); $('codeErr').textContent = '';
+    const name = codeStudent.display;
+    if (m === 'login') { $('codeTitle').textContent = `שלום ${name}!`; $('codeSub').textContent = 'הקלד/י את הקוד הסודי שלך'; }
+    if (m === 'set1') { $('codeTitle').textContent = `ברוך הבא, ${name}!`; $('codeSub').textContent = 'בחר/י קוד סודי של 4 ספרות. אל תגלו אותו לאף אחד 🤫'; }
+    if (m === 'set2') { $('codeTitle').textContent = 'עוד פעם, לאישור'; $('codeSub').textContent = 'הקלד/י שוב את אותו הקוד'; }
+  }
+  function drawDots() { [...$('dots').children].forEach((d, i) => d.classList.toggle('on', i < entered.length)); }
+  function buildKeypad() {
+    const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '⌫', '0', ''];
+    keys.forEach(k => {
+      const b = el('button', { class: 'key', 'aria-label': k === '⌫' ? 'מחיקה' : k, onclick: () => press(k) }, k);
+      if (!k) b.style.visibility = 'hidden';
+      $('keypad').append(b);
+    });
+  }
+  function press(k) {
+    if (!k) return;
+    if (k === '⌫') { entered = entered.slice(0, -1); drawDots(); return; }
+    if (entered.length >= 4) return;
+    entered += k; drawDots();
+    if (entered.length === 4) setTimeout(submitCode, 120);
+  }
+  document.addEventListener('keydown', e => {
+    if ($('vCode').hidden) return;
+    if (/^\d$/.test(e.key)) press(e.key);
+    if (e.key === 'Backspace') press('⌫');
+  });
+  function wrong(msg) {
+    $('codeErr').textContent = msg;
+    $('dots').classList.remove('shake'); void $('dots').offsetWidth; $('dots').classList.add('shake');
+    entered = ''; drawDots();
+  }
+  async function submitCode() {
+    const code = entered;
+    if (codeMode === 'set1') { firstCode = code; setCodeMode('set2'); return; }
+    if (codeMode === 'set2' && code !== firstCode) { setCodeMode('set1'); wrong('הקודים לא זהים. נתחיל מחדש.'); return; }
+    try {
+      const r = codeMode === 'login'
+        ? await api('login', { studentId: codeStudent.id, code })
+        : await api('setCode', { studentId: codeStudent.id, code });
+      token = r.token;
+      store.set(TOKEN_KEY, token, station);
+      loadMe();
+    } catch (e) {
+      if (e.code === 'NO_CODE') { setCodeMode('set1'); $('codeErr').textContent = 'המורה איפס לך את הקוד. בחר/י קוד חדש.'; return; }
+      if (codeMode === 'set2') setCodeMode('set1');
+      wrong(e.message);
+    }
+  }
+  $('backBtn').addEventListener('click', showPick);
+
+  /* ---------- Home ---------- */
+  async function loadMe() {
+    show('vLoading');
+    try { render(await api('me', { token })); show('vHome'); }
+    catch (e) { if (e.code === 'SESSION_EXPIRED') logout(); else { toast(e.message, 'error'); showPick(); } }
+  }
+
+  function render(v) {
+    view = v;
+    $('hello').textContent = `שלום, ${v.display}! 👋`;
+    const s = v.spins;
+    if (!v.week) {
+      $('spinsNum').textContent = '–';
+      $('spinsTitle').textContent = 'השבוע עוד לא נפתח';
+      $('spinsSub').textContent = 'המורה יעלה את הנקודות ואז אפשר יהיה לסובב.';
+    } else if (v.week.expired) {
+      $('spinsNum').textContent = '0';
+      $('spinsTitle').textContent = 'השבוע נגמר';
+      $('spinsSub').textContent = 'סיבובים חדשים יגיעו בשבוע הבא. ממשיכים לאסוף נקודות!';
+    } else {
+      $('spinsNum').textContent = s.left;
+      $('spinsTitle').textContent = s.left === 1 ? 'נשאר לך סיבוב אחד' : (s.left ? `נשארו לך ${s.left} סיבובים` : 'סובבת את כל הסיבובים 👏');
+      const parts = [`הרווחת ${s.earned} ${s.earned === 1 ? 'סיבוב' : 'סיבובים'} מהנקודות של השבוע שעבר`];
+      if (s.extra) parts.push(`ועוד ${s.extra} מסיבוב כפול`);
+      $('spinsSub').textContent = parts.join(' ') + '.';
+    }
+    const canSpin = !!(s && s.canSpin);
+    $('spinBtn').disabled = !canSpin || spinning;
+    $('spinBtn').textContent = spinning ? 'מסתובב...' : 'סובב! 🎡';
+    $('reason').textContent = s && s.left > 0 && !s.canSpin ? s.reason : '';
+    $('spinBtn').hidden = !(s && s.left > 0);
+
+    // wins
+    const ul = $('myWins'); ul.innerHTML = '';
+    if (!v.wins.length) ul.append(el('li', null, el('span', { class: 'nm muted' }, 'עוד אין פרסים השבוע.')));
+    v.wins.forEach(w => ul.append(el('li', { class: w.redeemed ? 'done' : '' },
+      el('span', { class: 'em' }, w.emoji || '🎁'), el('span', { class: 'nm' }, w.name),
+      el('span', { class: 'chip ' + (w.redeemed ? 'good' : 'gold') }, w.redeemed ? 'מומש ✓' : 'מחכה למימוש'))));
+    $('winsNote').textContent = v.week && !v.week.expired
+      ? `הפרסים בתוקף עד יום ${dayName(v.week.expireDate)} ${fmtDate(v.week.expireDate)}. כדי לממש פרס, אומרים למורה בימים ${v.redeemDays.join(', ')}.`
+      : '';
+
+    // class
+    const cb = $('classBody'); cb.innerHTML = '';
+    const cs = v.classStatus;
+    if (!cs) { $('classCard').hidden = true; } else {
+      $('classCard').hidden = false;
+      cb.append(el('div', { class: 'class-win' }, cs.classSpins
+        ? `🎉 השבוע הכיתה הרוויחה ${cs.classSpins} ${cs.classSpins === 1 ? 'סיבוב כיתתי' : 'סיבובים כיתתיים'}!`
+        : 'השבוע הכיתה עוד לא הגיעה לסיבוב כיתתי. בשבוע הבא ננסה ביחד! 💪'));
+      cs.tiers.forEach(t => {
+        const w = Math.min(100, t.pctRequired ? (t.pct / t.pctRequired) * 100 : 0);
+        cb.append(el('div', { class: 'tier' },
+          el('div', { class: 'tier-head' },
+            el('span', null, `${t.reached ? '✅' : '⬜'} סיבוב כיתתי ${t.n}`),
+            el('span', { class: 'muted' }, `${Math.round(t.pct)}% מהכיתה עם ${t.n}+ סיבובים (צריך ${t.pctRequired}%)`)),
+          el('div', { class: 'bar' + (t.reached ? ' reached' : '') }, el('span', { style: `width:${w}%` }))));
+      });
+    }
+    $('doneBtn').hidden = !station;
+    resizeWheel();
+  }
+
+  /* ---------- Wheel ---------- */
+  const canvas = $('wheel'), ctx = canvas.getContext('2d');
+  function segments() {
+    const ps = (view && view.prizes) || [];
+    const sum = ps.reduce((a, p) => a + p.weight, 0) || 1;
+    let a = 0;
+    return ps.map((p, i) => { const sp = p.weight / sum * TAU; const s = { p, start: a, end: a + sp, color: p.weight < 1 ? null : COLORS[i % COLORS.length] }; a += sp; return s; });
+  }
+  function resizeWheel() {
+    const r = canvas.getBoundingClientRect();
+    if (!r.width) return;
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.width * dpr);
+    draw();
+  }
+  function draw() {
+    const W = canvas.width, R = W / 2; if (!W) return;
+    ctx.clearRect(0, 0, W, W);
+    ctx.save(); ctx.translate(R, R); ctx.rotate(rotation - Math.PI / 2);
+    segments().forEach(s => {
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, R, s.start, s.end); ctx.closePath();
+      if (s.color) ctx.fillStyle = s.color; else {
+        const g = ctx.createRadialGradient(0, 0, R * 0.2, 0, 0, R); g.addColorStop(0, '#fff3b0'); g.addColorStop(0.6, '#ffcc33'); g.addColorStop(1, '#c98a00'); ctx.fillStyle = g;
+      }
+      ctx.fill(); ctx.lineWidth = Math.max(2, R * 0.012); ctx.strokeStyle = 'rgba(42,7,16,0.85)'; ctx.stroke();
+      const mid = (s.start + s.end) / 2, span = s.end - s.start;
+      ctx.save(); ctx.rotate(mid);
+      const flip = Math.cos(rotation - Math.PI / 2 + mid) < 0; if (flip) ctx.rotate(Math.PI);
+      const sx = flip ? -1 : 1, arcH = Math.max(8, span * R * 0.55);
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = `${Math.min(R * 0.09, arcH * 0.6)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+      ctx.fillText(s.p.emoji || '', sx * R * 0.88, 0);
+      let fs = Math.min(R * 0.075, arcH * 0.45); ctx.font = `800 ${fs}px Heebo, Arial, sans-serif`;
+      const label = s.p.short || s.p.name, maxW = R * 0.5, w = ctx.measureText(label).width;
+      if (w > maxW) { fs *= maxW / w; ctx.font = `800 ${fs}px Heebo, Arial, sans-serif`; }
+      ctx.direction = 'rtl'; ctx.lineJoin = 'round'; ctx.lineWidth = fs * 0.22;
+      ctx.strokeStyle = s.color ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)'; ctx.fillStyle = s.color ? '#fff' : '#2a0710';
+      ctx.strokeText(label, sx * R * 0.56, 0); ctx.fillText(label, sx * R * 0.56, 0);
+      ctx.restore();
+    });
+    ctx.restore();
+  }
+  window.addEventListener('resize', resizeWheel);
+
+  // sound
+  let audio = null;
+  function ac() { if (!soundOn) return null; try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); if (audio.state === 'suspended') audio.resume(); return audio; } catch (e) { return null; } }
+  function tick() { const a = ac(); if (!a) return; const o = a.createOscillator(), g = a.createGain(); o.type = 'square'; o.frequency.value = 1400; g.gain.setValueAtTime(0.05, a.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + 0.04); o.connect(g).connect(a.destination); o.start(); o.stop(a.currentTime + 0.05); }
+  function fanfare() { const a = ac(); if (!a) return; [523, 659, 784, 1047].forEach((f, i) => { const o = a.createOscillator(), g = a.createGain(); o.type = 'triangle'; o.frequency.value = f; const t = a.currentTime + i * 0.12; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.16, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.45); o.connect(g).connect(a.destination); o.start(t); o.stop(t + 0.5); }); }
+  function syncSound() { $('soundBtn').textContent = soundOn ? '🔊' : '🔇'; $('soundBtn').setAttribute('aria-pressed', soundOn); $('soundBtn').setAttribute('aria-label', soundOn ? 'כיבוי סאונד' : 'הדלקת סאונד'); }
+  $('soundBtn').addEventListener('click', () => { soundOn = !soundOn; store.set('wheel.sound', soundOn ? 'on' : 'off'); syncSound(); if (soundOn) tick(); });
+
+  function idxAt(segs, rot) { const a = mod(-rot, TAU); return segs.findIndex(s => a >= s.start && a < s.end); }
+
+  async function spin() {
+    if (spinning || !view || !view.spins || !view.spins.canSpin) return;
+    ac();
+    spinning = true; $('spinBtn').disabled = true; $('spinBtn').textContent = 'מסתובב...';
+    const segs = segments();
+    const speed = reduceMotion ? 6 : 13; // rad/s while waiting for the server
+    let last = performance.now(), lastIdx = idxAt(segs, rotation), result = null, failed = null, decel = null;
+    api('spin', { token }).then(r => { result = r; }).catch(e => { failed = e; });
+    function frame(now) {
+      const dt = Math.min(0.05, (now - last) / 1000); last = now;
+      if (failed) { spinning = false; render(view); toast(failed.code === 'SESSION_EXPIRED' ? 'צריך להיכנס שוב.' : failed.message, 'error'); if (failed.code === 'SESSION_EXPIRED') logout(); return; }
+      if (!decel && result) {
+        const target = segs.find(s => s.p.id === result.prizeId) || segs[0];
+        const landing = target.start + (target.end - target.start) * (0.2 + Math.random() * 0.6);
+        const extra = (reduceMotion ? 1 : 3) * TAU + mod(-landing - rotation, TAU);
+        decel = { from: rotation, extra, t0: now, dur: (3 * extra / speed) * 1000 };
+      }
+      if (decel) {
+        const t = Math.min(1, (now - decel.t0) / decel.dur);
+        rotation = decel.from + decel.extra * (1 - Math.pow(1 - t, 3));
+        if (t >= 1) { rotation = mod(rotation, TAU); draw(); done(); return; }
+      } else {
+        rotation += speed * dt * Math.min(1, (now - startT) / 400);
+      }
+      const i = idxAt(segs, rotation); if (i !== lastIdx) { tick(); lastIdx = i; }
+      draw(); requestAnimationFrame(frame);
+    }
+    const startT = performance.now();
+    requestAnimationFrame(frame);
+    function done() {
+      spinning = false;
+      const p = view.prizes.find(x => x.id === result.prizeId) || {};
+      $('rvKick').textContent = result.extraSpin ? 'וואו! סיבוב כפול!' : 'זכית ב...';
+      $('rvEmoji').textContent = p.emoji || '🎉';
+      $('rvName').textContent = result.extraSpin ? 'קיבלת עוד סיבוב! 🎰' : p.name;
+      $('reveal').classList.add('open');
+      $('rvOk').focus();
+      fanfare(); confetti(result.extraSpin ? 240 : 170);
+      pendingView = result.view;
+    }
+  }
+  let pendingView = null;
+  $('rvOk').addEventListener('click', () => { $('reveal').classList.remove('open'); if (pendingView) { render(pendingView); pendingView = null; } });
+  $('spinBtn').addEventListener('click', spin);
+
+  // confetti
+  const cc = $('confetti'), cx = cc.getContext('2d'); let parts = [], raf = null;
+  function confetti(n) {
+    if (reduceMotion) n = Math.round(n / 4);
+    cc.width = innerWidth; cc.height = innerHeight;
+    const cols = ['#ffcc33', '#ff006e', '#3a86ff', '#06d6a0', '#ffffff', '#f77f00', '#8338ec'];
+    for (let i = 0; i < n; i++) parts.push({ x: innerWidth * (0.2 + Math.random() * 0.6), y: innerHeight * 0.3, vx: (Math.random() - 0.5) * 12, vy: -Math.random() * 13 - 3, w: 5 + Math.random() * 7, h: 4 + Math.random() * 5, r: Math.random() * TAU, vr: (Math.random() - 0.5) * 0.3, c: cols[(Math.random() * cols.length) | 0], life: 0 });
+    if (!raf) raf = requestAnimationFrame(step);
+  }
+  function step() {
+    cx.clearRect(0, 0, cc.width, cc.height);
+    parts.forEach(p => { p.vy += 0.3; p.x += p.vx; p.y += p.vy; p.r += p.vr; p.life++; cx.save(); cx.translate(p.x, p.y); cx.rotate(p.r); cx.fillStyle = p.c; cx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); cx.restore(); });
+    parts = parts.filter(p => p.y < cc.height + 30 && p.life < 360);
+    raf = parts.length ? requestAnimationFrame(step) : (cx.clearRect(0, 0, cc.width, cc.height), null);
+  }
+
+  /* ---------- Session ---------- */
+  function logout() { token = null; view = null; store.del(TOKEN_KEY); showPick(); }
+  $('logoutBtn').addEventListener('click', logout);
+  $('doneBtn').addEventListener('click', logout);
+
+  buildKeypad(); syncSound();
+  if (token) loadMe(); else showPick();
+})();
+</script>
+</body>
+</html>

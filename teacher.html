@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#2a0710">
+<meta name="robots" content="noindex">
+<title>גלגל המזל – מסך מורה</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Secular+One&family=Heebo:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<style>
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 14px 16px 60px; display: grid; gap: 16px; }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .top h1 { color: var(--gold); font-size: 28px; text-shadow: 0 2px 0 var(--gold-deep); }
+  .login { max-width: 420px; margin: 40px auto; display: grid; gap: 12px; text-align: center; }
+  .login input { padding: 12px; border-radius: 12px; border: 2px solid var(--line); background: #1a0409; font-size: 20px; text-align: center; }
+  .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .tile { background: rgba(255,255,255,0.05); border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; }
+  .tile .lbl { font-size: 14px; color: var(--ink-soft); font-weight: 700; }
+  .tile .val { font-family: var(--display); font-size: 34px; color: var(--gold); line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .tile .sub { font-size: 14px; color: var(--ink-soft); }
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; border-bottom: 2px solid var(--line); padding-bottom: 8px; }
+  .tab { background: transparent; border: none; padding: 8px 14px; border-radius: 10px; font-weight: 800; color: var(--ink-soft); }
+  .tab[aria-selected="true"] { background: var(--gold); color: #2a0710; }
+  .panel[hidden] { display: none; }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+  .filters input { flex: 1; min-width: 160px; padding: 9px 12px; border-radius: 10px; border: 2px solid var(--line); background: #1a0409; }
+  .fchip { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 6px 12px; font-weight: 700; font-size: 14px; color: var(--ink-soft); }
+  .fchip[aria-pressed="true"] { background: rgba(255,204,51,0.2); color: var(--gold); border-color: var(--gold); }
+  .students { display: grid; gap: 10px; }
+  .st { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,204,51,0.22); border-radius: 14px; padding: 12px; display: grid; gap: 8px; }
+  .st.inactive { opacity: 0.65; }
+  .st-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .st-name { font-weight: 800; font-size: 19px; margin-left: auto; }
+  .st-nums { font-size: 15px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  .st-nums b { color: var(--ink); }
+  .wins { display: flex; flex-wrap: wrap; gap: 6px; }
+  .win { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 4px 6px 4px 12px; background: rgba(255,204,51,0.15); border: 1px solid rgba(255,204,51,0.5); font-weight: 700; font-size: 15px; }
+  .win.done { background: rgba(61,220,151,0.12); border-color: rgba(61,220,151,0.5); color: var(--good); text-decoration: line-through; }
+  .win button { border: none; border-radius: 999px; padding: 4px 10px; font-weight: 800; font-size: 13px; background: var(--gold); color: #2a0710; }
+  .win.done button { background: rgba(255,255,255,0.15); color: var(--ink); text-decoration: none; }
+  .st-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .st-actions select { background: #1a0409; border: 1px solid var(--line); border-radius: 10px; padding: 6px 8px; min-height: 36px; }
+  .adj { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .adj button { background: transparent; border: none; width: 36px; height: 34px; font-size: 20px; font-weight: 800; }
+  .adj span { padding: 0 6px; font-size: 14px; color: var(--ink-soft); }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  th, td { padding: 8px 6px; border-bottom: 1px solid rgba(255,204,51,0.15); text-align: right; }
+  th { color: var(--ink-soft); font-size: 14px; }
+  .scroll { overflow-x: auto; }
+  .drop { border: 2px dashed var(--line); border-radius: 16px; padding: 22px; text-align: center; display: grid; gap: 10px; justify-items: center; }
+  .form-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .field { display: grid; gap: 6px; }
+  .field label { font-weight: 700; }
+  .field input, .field select { padding: 9px 10px; border-radius: 10px; border: 2px solid var(--line); background: #1a0409; }
+  .field .hint { font-size: 14px; color: var(--ink-soft); }
+  .tier-row, .prize-row { display: grid; gap: 8px; align-items: center; }
+  .tier-row { grid-template-columns: 1fr 1fr 44px; }
+  .prize-row { grid-template-columns: 56px 1fr 1.8fr 130px 80px 80px 40px; }
+  .tier-row input, .prize-row input, .prize-row select { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: #1a0409; }
+  .prize-row .em { text-align: center; font-size: 20px; }
+  .prize-head { font-size: 13px; color: var(--ink-soft); font-weight: 700; }
+  .days { display: flex; gap: 6px; flex-wrap: wrap; }
+  .days label { display: inline-flex; gap: 4px; align-items: center; border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; }
+  .qr-box { display: grid; gap: 14px; justify-items: center; text-align: center; }
+  #qr { background: #fff; padding: 14px; border-radius: 16px; }
+  .link { direction: ltr; font-family: ui-monospace, monospace; font-size: 14px; background: #1a0409; padding: 8px 12px; border-radius: 10px; word-break: break-all; }
+  .bar { height: 12px; border-radius: 999px; background: rgba(255,255,255,0.1); overflow: hidden; }
+  .bar > span { display: block; height: 100%; background: linear-gradient(90deg, var(--gold-deep), var(--gold)); }
+  .bar.ok > span { background: linear-gradient(90deg, #1fa36b, var(--good)); }
+  #mainView:not([hidden]) { display: grid; gap: 16px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  @media (max-width: 760px) {
+    .prize-head { display: none; }
+    .prize-row { grid-template-columns: 52px 1fr 40px; padding: 8px; border: 1px solid rgba(255,204,51,0.2); border-radius: 12px; }
+    .prize-row .full, .prize-row .w, .prize-row .act, .prize-row .xs { grid-column: 1 / -1; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>🎡 מסך מורה</h1>
+    <div class="row" id="topActions" hidden>
+      <a class="btn btn-small" id="classWheelLink" target="_blank" rel="noopener">🏆 לגלגל הכיתתי</a>
+      <button class="btn btn-small" id="refreshBtn">↻ רענון</button>
+      <button class="btn btn-small" id="logoutBtn">יציאה</button>
+    </div>
+  </div>
+
+  <section class="card login" id="loginView" hidden>
+    <h2 style="color:var(--gold)">כניסת מורה</h2>
+    <p class="muted" style="margin:0">בכניסה הראשונה, הסיסמה שתקלידו תישמר כסיסמת המורה.</p>
+    <input type="password" id="pw" autocomplete="current-password" aria-label="סיסמה" placeholder="סיסמה">
+    <button class="btn btn-primary" id="loginBtn">כניסה</button>
+    <p class="err" id="loginErr"></p>
+  </section>
+
+  <div id="loading"><div class="spinner" aria-label="טוען"></div></div>
+
+  <div id="mainView" hidden>
+    <div class="summary" id="summary"></div>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="students" aria-selected="true">תלמידים</button>
+      <button class="tab" role="tab" data-tab="upload">העלאת דוח</button>
+      <button class="tab" role="tab" data-tab="class">מדרגות כיתתיות</button>
+      <button class="tab" role="tab" data-tab="prizes">פרסים</button>
+      <button class="tab" role="tab" data-tab="settings">הגדרות</button>
+      <button class="tab" role="tab" data-tab="share">קישור לילדים</button>
+    </div>
+
+    <section class="panel" id="p-students">
+      <div class="filters">
+        <input type="search" id="q" placeholder="חיפוש תלמיד..." aria-label="חיפוש תלמיד">
+        <button class="fchip" data-f="all" aria-pressed="true">כולם</button>
+        <button class="fchip" data-f="redeem" aria-pressed="false">יש פרס למימוש</button>
+        <button class="fchip" data-f="left" aria-pressed="false">עוד לא סובבו</button>
+        <button class="fchip" data-f="inactive" aria-pressed="false">לא פעילים</button>
+      </div>
+      <div class="students" id="students"></div>
+    </section>
+
+    <section class="panel card" id="p-upload" hidden>
+      <h2 style="color:var(--gold);margin-bottom:8px">העלאת דוח מקלאס דוג׳ו</h2>
+      <p class="muted" style="margin-top:0">בקלאס דוג׳ו: Options ← View reports ← בוחרים את טווח התאריכים של השבוע הקודם ← Export.</p>
+      <div class="drop">
+        <input type="file" id="file" accept=".csv,text/csv" aria-label="קובץ דוח">
+        <span class="muted" id="fileName"></span>
+      </div>
+      <p class="err" id="upErr"></p>
+      <div id="preview"></div>
+    </section>
+
+    <section class="panel card" id="p-class" hidden>
+      <h2 style="color:var(--gold);margin-bottom:8px">מדרגות ההגרלה הכיתתית</h2>
+      <div id="classDetail"></div>
+    </section>
+
+    <section class="panel card" id="p-prizes" hidden>
+      <h2 style="color:var(--gold);margin-bottom:6px">הפרסים בגלגל האישי</h2>
+      <p class="muted" style="margin-top:0">"סיבוב כפול" נותן לילד עוד סיבוב במקום פרס. פרס לא פעיל לא מופיע בגלגל.</p>
+      <div class="prize-row prize-head"><span>סמל</span><span>שם קצר (על הגלגל)</span><span class="full">שם מלא</span><span class="w">סיכוי</span><span class="act">פעיל</span><span class="xs">סיבוב כפול</span><span></span></div>
+      <div id="prizeRows" style="display:grid;gap:8px;margin-top:6px"></div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn" id="addPrize">+ הוספת פרס</button>
+        <button class="btn btn-primary" id="savePrizes">שמירת הפרסים</button>
+      </div>
+    </section>
+
+    <section class="panel card" id="p-settings" hidden>
+      <h2 style="color:var(--gold);margin-bottom:12px">הגדרות</h2>
+      <div class="form-grid">
+        <div class="field"><label for="sPps">נקודות לכל סיבוב</label><input id="sPps" type="number" min="1"><span class="hint">נקודות נטו (חיוביות פחות שליליות)</span></div>
+        <div class="field"><label for="sBt">בונוס לשיפור: עלייה של לפחות</label><input id="sBt" type="number" min="0"><span class="hint">נקודות נטו לעומת השבוע הקודם. 0 = בלי בונוס</span></div>
+        <div class="field"><label for="sBs">כמה סיבובי בונוס</label><input id="sBs" type="number" min="0"></div>
+      </div>
+      <h3 style="margin:18px 0 8px">מדרגות כיתתיות</h3>
+      <p class="hint muted" style="margin:0 0 8px">הכיתה מקבלת N סיבובים אם לפחות X% מהילדים הפעילים הרוויחו N סיבובים ומעלה. המדרגות נבדקות לפי הסדר.</p>
+      <div id="tierRows" style="display:grid;gap:8px"></div>
+      <button class="btn btn-small" id="addTier" style="margin-top:8px">+ מדרגה</button>
+      <h3 style="margin:18px 0 8px">ימים שבהם אפשר לממש פרסים</h3>
+      <div class="days" id="days"></div>
+      <div class="row" style="margin-top:16px"><button class="btn btn-primary" id="saveSettings">שמירת ההגדרות</button></div>
+      <h3 style="margin:24px 0 8px">החלפת סיסמת מורה</h3>
+      <div class="row"><input type="password" id="newPw" placeholder="סיסמה חדשה" aria-label="סיסמה חדשה" style="padding:9px;border-radius:10px;border:2px solid var(--line);background:#1a0409"><button class="btn" id="changePw">החלפה</button></div>
+    </section>
+
+    <section class="panel card qr-box" id="p-share" hidden>
+      <h2 style="color:var(--gold)">סורקים ומסובבים!</h2>
+      <div id="qr"></div>
+      <div class="link" id="kidLink"></div>
+      <div class="row" style="justify-content:center">
+        <button class="btn" id="copyKid">העתקת הקישור</button>
+      </div>
+      <p class="muted" style="margin:0">לעמדת המורה (ילד בלי טלפון) השתמשו בקישור הזה. הוא לא זוכר את הילד אחרי שסיים:</p>
+      <div class="link" id="stationLink"></div>
+    </section>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script>
+(() => {
+  const { api, store, el, fmtDate, dayName, ask, toast, DAYS } = WH;
+  const $ = id => document.getElementById(id);
+  const TOKEN_KEY = 'wheel.teacherToken';
+  let token = store.get(TOKEN_KEY);
+  let S = null; // state
+  let filter = 'all';
+  const WEIGHTS = [[1, 'רגיל'], [0.4, 'נדיר ⭐'], [0.15, 'נדיר מאוד 🌟']];
+
+  function showOnly(id) {
+    ['loginView', 'loading', 'mainView'].forEach(v => { $(v).hidden = v !== id; });
+    $('topActions').hidden = id !== 'mainView';
+  }
+
+  async function call(action, payload) {
+    try { return await api(action, Object.assign({ token }, payload || {})); }
+    catch (e) {
+      if (e.code === 'SESSION_EXPIRED') { token = null; store.del(TOKEN_KEY); showOnly('loginView'); toast('צריך להיכנס שוב.'); }
+      throw e;
+    }
+  }
+
+  async function load() {
+    showOnly('loading');
+    try { S = await call('tState'); renderAll(); showOnly('mainView'); }
+    catch (e) { if (token) { showOnly('mainView'); toast(e.message, 'error'); } }
+  }
+
+  /* ---------- Login ---------- */
+  $('loginBtn').addEventListener('click', login);
+  $('pw').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+  async function login() {
+    $('loginErr').textContent = '';
+    try {
+      const r = await api('tLogin', { password: $('pw').value });
+      token = r.token; store.set(TOKEN_KEY, token);
+      if (r.created) toast('הסיסמה נשמרה. בפעם הבאה נכנסים איתה.');
+      $('pw').value = '';
+      load();
+    } catch (e) { $('loginErr').textContent = e.message; }
+  }
+  $('logoutBtn').addEventListener('click', () => { token = null; store.del(TOKEN_KEY); showOnly('loginView'); });
+  $('refreshBtn').addEventListener('click', load);
+
+  /* ---------- Tabs ---------- */
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x === t));
+    document.querySelectorAll('.panel').forEach(p => { p.hidden = p.id !== 'p-' + t.dataset.tab; });
+    if (t.dataset.tab === 'share') renderShare();
+  }));
+
+  function apply(state) { S = state; renderAll(); }
+
+  function renderAll() {
+    $('classWheelLink').href = window.CLASS_WHEEL_URL + (S.classStatus && S.classStatus.classSpins ? '#spins-' + S.classStatus.classSpins : '');
+    renderSummary(); renderStudents(); renderClass(); renderPrizes(); renderSettings();
+  }
+
+  /* ---------- Summary ---------- */
+  function renderSummary() {
+    const box = $('summary'); box.innerHTML = '';
+    const w = S.week;
+    const tile = (lbl, val, sub) => el('div', { class: 'tile' }, el('div', { class: 'lbl' }, lbl), el('div', { class: 'val' }, val), sub ? el('div', { class: 'sub' }, sub) : null);
+    if (!w) {
+      box.append(tile('השבוע', 'עוד לא נפתח', 'מעלים את הדוח בלשונית "העלאת דוח"'));
+      return;
+    }
+    const pending = S.students.reduce((n, s) => n + s.wins.filter(x => !x.redeemedAt).length, 0);
+    const notSpun = S.students.filter(s => s.left > 0).length;
+    box.append(
+      tile('השבוע', `${w.openDay} ${fmtDate(w.openDate)}`, w.expired ? 'השבוע נגמר. אפשר להעלות דוח חדש' : `בתוקף עד ${dayName(w.expireDate)} ${fmtDate(w.expireDate)}`),
+      tile('סיבובים כיתתיים', S.classStatus ? S.classStatus.classSpins : 0, S.classStatus ? `${S.classStatus.activeCount} ילדים פעילים מתוך ${S.classStatus.totalCount}` : ''),
+      tile('פרסים שמחכים למימוש', pending, S.redeemToday ? `היום (${S.todayDay}) אפשר לממש` : `היום (${S.todayDay}) לא יום מימוש`),
+      tile('לא סיימו לסובב', notSpun, 'ילדים עם סיבובים שנשארו')
+    );
+  }
+
+  /* ---------- Students ---------- */
+  $('q').addEventListener('input', renderStudents);
+  document.querySelectorAll('.fchip').forEach(c => c.addEventListener('click', () => {
+    filter = c.dataset.f;
+    document.querySelectorAll('.fchip').forEach(x => x.setAttribute('aria-pressed', x === c));
+    renderStudents();
+  }));
+
+  function renderStudents() {
+    const box = $('students'); box.innerHTML = '';
+    if (!S.week) { box.append(el('p', { class: 'muted' }, 'עוד אין שבוע פתוח. מעלים דוח בלשונית "העלאת דוח".')); return; }
+    const q = $('q').value.trim();
+    let list = S.students.filter(s => !q || s.name.includes(q));
+    if (filter === 'redeem') list = list.filter(s => s.wins.some(w => !w.redeemedAt));
+    if (filter === 'left') list = list.filter(s => s.left > 0);
+    if (filter === 'inactive') list = list.filter(s => !s.active);
+    if (!list.length) box.append(el('p', { class: 'muted' }, 'אין תלמידים שמתאימים לסינון.'));
+    list.forEach(s => box.append(studentCard(s)));
+  }
+
+  function studentCard(s) {
+    const total = s.baseSpins + s.bonus + s.manualAdj + s.extra;
+    const chips = [];
+    if (!s.inReport) chips.push(el('span', { class: 'chip bad' }, 'לא בדוח'));
+    if (!s.active) chips.push(el('span', { class: 'chip warn' }, 'לא פעיל'));
+    if (s.bonus) chips.push(el('span', { class: 'chip good' }, `+${s.bonus} בונוס שיפור`));
+    if (s.extra) chips.push(el('span', { class: 'chip gold' }, `+${s.extra} סיבוב כפול`));
+    if (s.unlocked) chips.push(el('span', { class: 'chip gold' }, 'גלגל פתוח'));
+    if (!s.hasCode) chips.push(el('span', { class: 'chip' }, 'בלי קוד'));
+    const prev = s.prevNet === '' ? '' : ` · שבוע קודם ${s.prevNet}`;
+    const wins = el('div', { class: 'wins' }, s.wins.map(w => el('span', { class: 'win' + (w.redeemedAt ? ' done' : '') },
+      `${w.emoji || '🎁'} ${w.name}`,
+      el('button', { onclick: () => redeem(s, w) }, w.redeemedAt ? 'ביטול' : 'מומש'))));
+    const activeSel = el('select', { 'aria-label': 'סטטוס פעילות', onchange: e => act('tSetActive', { studentId: s.id, value: e.target.value }) },
+      el('option', { value: '' }, 'פעיל: אוטומטי'), el('option', { value: 'yes' }, 'פעיל: כן'), el('option', { value: 'no' }, 'פעיל: לא (נעדר)'));
+    activeSel.value = s.activeOverride || '';
+    return el('div', { class: 'st' + (s.active ? '' : ' inactive') },
+      el('div', { class: 'st-head' }, el('span', { class: 'st-name' }, s.name), chips),
+      el('div', { class: 'st-nums' },
+        'נטו ', el('b', { dir: 'ltr' }, s.net), ` (+${s.positive} / −${s.negative})${prev} · סיבובים: `,
+        el('b', null, `${s.used}/${total}`), ' נוצלו', s.manualAdj ? ` · תיקון ידני ${s.manualAdj > 0 ? '+' : ''}${s.manualAdj}` : ''),
+      s.wins.length ? wins : null,
+      el('div', { class: 'st-actions' },
+        el('button', { class: 'btn btn-small', onclick: () => act('tUnlock', { studentId: s.id, value: !s.unlocked }) }, s.unlocked ? '🔒 סגירת הגלגל' : '🔓 פתיחת הגלגל'),
+        el('span', { class: 'adj' },
+          el('button', { 'aria-label': 'הורדת סיבוב', onclick: () => act('tAdjust', { studentId: s.id, delta: -1 }) }, '−'),
+          el('span', null, 'סיבוב'),
+          el('button', { 'aria-label': 'הוספת סיבוב', onclick: () => act('tAdjust', { studentId: s.id, delta: 1 }) }, '+')),
+        activeSel,
+        s.hasCode ? el('button', { class: 'btn btn-small btn-danger', onclick: async () => {
+          if (await ask(`לאפס את הקוד של ${s.name}? בכניסה הבאה הוא/היא יבחרו קוד חדש.`, 'איפוס')) act('tResetCode', { studentId: s.id });
+        } }, 'איפוס קוד') : null));
+  }
+
+  async function act(action, payload) {
+    try { apply(await call(action, payload)); } catch (e) { toast(e.message, 'error'); }
+  }
+  async function redeem(s, w) {
+    if (w.redeemedAt) {
+      if (!(await ask(`לבטל את המימוש של "${w.name}"?`, 'ביטול מימוש', 'חזרה'))) return;
+      return act('tRedeem', { winId: w.id, undo: true });
+    }
+    if (!S.redeemToday && !(await ask(`היום (${S.todayDay}) הוא לא יום מימוש. לסמן בכל זאת?`, 'לסמן', 'חזרה'))) return;
+    act('tRedeem', { winId: w.id });
+  }
+
+  /* ---------- Upload ---------- */
+  let csvText = '', csvName = '';
+  $('file').addEventListener('change', async e => {
+    const f = e.target.files[0]; if (!f) return;
+    csvName = f.name; $('fileName').textContent = f.name; $('upErr').textContent = '';
+    csvText = await f.text();
+    try { renderPreview(await call('tPreview', { csv: csvText, mode: 'new' })); }
+    catch (err) { $('upErr').textContent = err.message; $('preview').innerHTML = ''; }
+  });
+
+  function renderPreview(p) {
+    const box = $('preview'); box.innerHTML = '';
+    const rows = p.rows.slice().sort((a, b) => a.name.localeCompare(b.name, 'he'));
+    const totalSpins = rows.reduce((n, r) => n + r.baseSpins + r.bonus, 0);
+    box.append(el('p', null, el('b', null, `${rows.length} תלמידים · ${totalSpins} סיבובים אישיים · ${p.classStatus.classSpins} סיבובים כיתתיים.`),
+      ` השבוע ייפתח היום (${dayName(p.openDate)} ${fmtDate(p.openDate)}) ויהיה בתוקף עד ${dayName(p.expireDate)} ${fmtDate(p.expireDate)}.`));
+    const tbl = el('table', null,
+      el('thead', null, el('tr', null, ['שם', 'חיוביות', 'שליליות', 'נטו', 'שבוע קודם', 'סיבובים', 'בונוס', 'פעיל'].map(h => el('th', null, h)))),
+      el('tbody', null, rows.map(r => el('tr', null,
+        el('td', null, r.name), el('td', null, r.positive), el('td', null, r.negative), el('td', null, el('b', { dir: 'ltr' }, r.net)),
+        el('td', null, r.prevNet === '' ? '–' : r.prevNet), el('td', null, el('b', null, r.baseSpins)), el('td', null, r.bonus ? '+' + r.bonus : ''),
+        el('td', null, r.autoActive ? '✓' : el('span', { class: 'chip warn' }, 'אין נקודות'))))));
+    box.append(el('div', { class: 'scroll' }, tbl));
+    const actions = el('div', { class: 'row', style: 'margin-top:14px' },
+      el('button', { class: 'btn btn-primary', onclick: () => openWeek('new') }, 'פתיחת שבוע חדש'));
+    if (p.currentWeek && !S.week?.expired) actions.append(el('button', { class: 'btn', onclick: () => openWeek('update') }, 'תיקון השבוע הנוכחי (שומר סיבובים שכבר נוצלו)'));
+    box.append(actions);
+  }
+
+  async function openWeek(mode) {
+    if (mode === 'new' && S.week && !S.week.expired) {
+      if (!(await ask('יש כבר שבוע פתוח. פתיחת שבוע חדש תסגור אותו, והפרסים שלא מומשו ייעלמו. להמשיך?', 'פתיחת שבוע חדש', 'חזרה'))) return;
+    }
+    try {
+      apply(await call('tOpenWeek', { csv: csvText, fileName: csvName, mode }));
+      toast(mode === 'new' ? 'השבוע נפתח! הילדים יכולים לסובב היום.' : 'השבוע עודכן.');
+      $('preview').innerHTML = ''; $('file').value = ''; $('fileName').textContent = '';
+      document.querySelector('[data-tab="students"]').click();
+    } catch (e) { $('upErr').textContent = e.message; }
+  }
+
+  /* ---------- Class tiers ---------- */
+  function renderClass() {
+    const box = $('classDetail'); box.innerHTML = '';
+    const cs = S.classStatus;
+    if (!cs) { box.append(el('p', { class: 'muted' }, 'המדרגות יחושבו אחרי העלאת דוח.')); return; }
+    box.append(el('p', null, el('b', null, `${cs.activeCount} ילדים פעילים`), ` (מתוך ${cs.totalCount}). הכיתה הרוויחה `, el('b', null, `${cs.classSpins} סיבובים כיתתיים`), '.'));
+    cs.tiers.forEach(t => box.append(el('div', { style: 'margin:12px 0' },
+      el('div', { class: 'row', style: 'justify-content:space-between' },
+        el('b', null, `${t.reached ? '✅' : '⬜'} מדרגה ${t.n}: ${t.pctRequired}% מהילדים עם ${t.n}+ סיבובים`),
+        el('span', { class: 'muted' }, `${t.have} ילדים (${Math.round(t.pct)}%). צריך ${t.need}`)),
+      el('div', { class: 'bar' + (t.reached ? ' ok' : ''), style: 'margin-top:6px' }, el('span', { style: `width:${Math.min(100, t.pctRequired ? t.pct / t.pctRequired * 100 : 0)}%` })))));
+    box.append(el('a', { class: 'btn btn-primary', href: $('classWheelLink').href, target: '_blank', rel: 'noopener', style: 'display:inline-block;text-decoration:none;margin-top:8px' }, '🏆 פתיחת הגלגל הכיתתי למקרן'));
+  }
+
+  /* ---------- Prizes ---------- */
+  function prizeRow(p) {
+    const wsel = el('select', { class: 'w', 'aria-label': 'סיכוי' }, WEIGHTS.map(([v, l]) => el('option', { value: v }, l)));
+    const closest = WEIGHTS.reduce((a, b) => Math.abs(b[0] - p.weight) < Math.abs(a[0] - p.weight) ? b : a)[0];
+    wsel.value = String(closest);
+    const r = el('div', { class: 'prize-row', 'data-id': p.id || '' },
+      el('input', { class: 'em', value: p.emoji || '', maxlength: 4, 'aria-label': 'סמל' }),
+      el('input', { class: 'sh', value: p.short || '', maxlength: 18, 'aria-label': 'שם קצר' }),
+      el('input', { class: 'full', value: p.name || '', maxlength: 80, 'aria-label': 'שם מלא' }),
+      wsel,
+      el('label', { class: 'act' }, el('input', { type: 'checkbox', class: 'ac', checked: p.active !== false }), ' פעיל'),
+      el('label', { class: 'xs' }, el('input', { type: 'checkbox', class: 'x', checked: !!p.extraSpin }), ' כפול'),
+      el('button', { class: 'btn btn-small btn-danger', 'aria-label': 'מחיקה', onclick: () => r.remove() }, '✕'));
+    return r;
+  }
+  function renderPrizes() { const b = $('prizeRows'); b.innerHTML = ''; S.prizes.forEach(p => b.append(prizeRow(p))); }
+  $('addPrize').addEventListener('click', () => { const r = prizeRow({ emoji: '🎁', weight: 1, active: true }); $('prizeRows').append(r); r.querySelector('.sh').focus(); });
+  $('savePrizes').addEventListener('click', async () => {
+    const prizes = [...$('prizeRows').children].map(r => ({
+      id: r.dataset.id || undefined, emoji: r.querySelector('.em').value.trim(), short: r.querySelector('.sh').value.trim(),
+      name: r.querySelector('.full').value.trim() || r.querySelector('.sh').value.trim(), weight: Number(r.querySelector('.w').value),
+      active: r.querySelector('.ac').checked, extraSpin: r.querySelector('.x').checked
+    }));
+    try { apply(await call('tSavePrizes', { prizes })); toast('הפרסים נשמרו.'); } catch (e) { toast(e.message, 'error'); }
+  });
+
+  /* ---------- Settings ---------- */
+  function tierRow(t) {
+    const r = el('div', { class: 'tier-row' },
+      el('label', null, 'סיבובים כיתתיים ', el('input', { type: 'number', min: 1, class: 'tn', value: t.n })),
+      el('label', null, 'אחוז מינימום ', el('input', { type: 'number', min: 1, max: 100, class: 'tp', value: t.pct })),
+      el('button', { class: 'btn btn-small btn-danger', 'aria-label': 'מחיקת מדרגה', onclick: () => r.remove() }, '✕'));
+    return r;
+  }
+  function renderSettings() {
+    const s = S.settings;
+    $('sPps').value = s.pointsPerSpin; $('sBt').value = s.bonusThreshold; $('sBs').value = s.bonusSpins;
+    const tb = $('tierRows'); tb.innerHTML = ''; s.tiers.forEach(t => tb.append(tierRow(t)));
+    const d = $('days'); d.innerHTML = '';
+    DAYS.forEach((name, i) => d.append(el('label', null, el('input', { type: 'checkbox', value: i, checked: s.redeemDays.includes(i) }), ' ' + name)));
+  }
+  $('addTier').addEventListener('click', () => {
+    const rows = [...$('tierRows').children];
+    const n = rows.length ? Number(rows[rows.length - 1].querySelector('.tn').value) + 1 : 1;
+    $('tierRows').append(tierRow({ n, pct: 10 }));
+  });
+  $('saveSettings').addEventListener('click', async () => {
+    const settings = {
+      pointsPerSpin: Number($('sPps').value), bonusThreshold: Number($('sBt').value), bonusSpins: Number($('sBs').value),
+      tiers: [...$('tierRows').children].map(r => ({ n: Number(r.querySelector('.tn').value), pct: Number(r.querySelector('.tp').value) })),
+      redeemDays: [...$('days').querySelectorAll('input:checked')].map(i => Number(i.value))
+    };
+    try { apply(await call('tSaveSettings', { settings })); toast('ההגדרות נשמרו. הן יחולו על הדוח הבא.'); } catch (e) { toast(e.message, 'error'); }
+  });
+  $('changePw').addEventListener('click', async () => {
+    try { await call('tChangePassword', { newPassword: $('newPw').value }); $('newPw').value = ''; toast('הסיסמה הוחלפה.'); }
+    catch (e) { toast(e.message, 'error'); }
+  });
+
+  /* ---------- Share ---------- */
+  function kidUrl(station) {
+    const u = new URL('index.html', location.href);
+    if (station) u.search = '?station=1';
+    return u.href;
+  }
+  function renderShare() {
+    $('kidLink').textContent = kidUrl(false);
+    $('stationLink').textContent = kidUrl(true);
+    $('qr').innerHTML = '';
+    if (window.QRCode) new QRCode($('qr'), { text: kidUrl(false), width: 300, height: 300, colorDark: '#2a0710', colorLight: '#ffffff' });
+    else $('qr').append(el('p', { style: 'color:#2a0710' }, 'לא הצלחתי לטעון את הברקוד.'));
+  }
+  $('copyKid').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(kidUrl(false)); toast('הקישור הועתק.'); } catch (e) { toast('ההעתקה נחסמה. סמנו את הקישור והעתיקו ידנית.', 'error'); }
+  });
+
+  if (token) load(); else showOnly('loginView');
+})();
+</script>
+</body>
+</html>
